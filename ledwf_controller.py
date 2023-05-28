@@ -281,7 +281,7 @@ def response_decode(response):
     else:
         return None
     
-    print(f"Payload: {payload}")
+    print(f"Response Payload: {payload}")
     response = bytearray.fromhex(payload)
     power = response[2]
     if power == 0x23:
@@ -362,26 +362,23 @@ elif len(sys.argv) > 1 and sys.argv[1] == "--connect":
                 print("setting rainbow")
                 set_mode(peripheral, 1, 50, 100)
 
-                time.sleep(2)
+#                time.sleep(2)
 
                 print("setting RGB with GRB")
                 set_ic(peripheral, 0x01, 0x02)
 
-                time.sleep(2)
+                time.sleep(5)
 
-                print("setting RGB with RGB")
-                set_ic(peripheral, 0x01, 0x00)
-
-                time.sleep(2)
-
-                print("setting RGBW with RGBW")
+                print("setting RGBW with RGBW and 0% white")
                 set_ic(peripheral, 0x07, 0x00)
+                set_white(peripheral, 0, 0)
 
-                time.sleep(2)
+                time.sleep(5)
 
-                print("setting RGBW with WRGB")
-                set_ic(peripheral, 0x07, 0x06)
+                print("setting white to 100%")
+                set_white(peripheral, 100, 100)
 
+                time.sleep(5)
 
 
             finally:
