@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/python3
 
 # A very basic bit of Python to let us play with the LEDnetWF devices a bit more easily.
 # This is a means to an end and is not intended to be a complete solution.
@@ -165,6 +165,19 @@ def set_rgb(peripheral, r, g, b):
     hsv_packet[12] = hsv[2]
     peripheral.write_request(SERVICE_UUID, WRITE_UUID, bytes(hsv_packet))  
 
+
+IC_PACKET = bytearray.fromhex("00 50 80 00 00 0b 0c 0b 62 00 06 00 01 07 06 06 01 f0 6d")
+def set_ic(peripheral, ledType, colorOrder):
+    logger(f"Setting: {ledType}, {colorOrder}")
+    ic_packet = IC_PACKET
+    count = get_counter()
+    ic_packet[0]  = (0xFF00 & count)
+    ic_packet[1]  = (0x00FF & count)
+    ic_packet[13]  = ledType
+    ic_packet[14] = colorOrder
+    peripheral.write_request(SERVICE_UUID, WRITE_UUID, bytes(ic_packet))
+
+
 def set_power(peripheral, power):
     if power:
         packet = prepare_packet(ON_PACKET)
@@ -268,7 +281,7 @@ def response_decode(response):
     else:
         return None
     
-    print(f"Payload: {payload}")
+    print(f"Response Payload: {payload}")
     response = bytearray.fromhex(payload)
     power = response[2]
     if power == 0x23:
@@ -346,27 +359,28 @@ elif len(sys.argv) > 1 and sys.argv[1] == "--connect":
                 # Use to debug response packets
                 # while True:
                 #     time.sleep(1)
-                set_white(peripheral, 100, 50)
-                time.sleep(5)
-                set_white(peripheral, 75, 50)
-                time.sleep(5)
-                set_white(peripheral, 50, 50)
+                print("setting rainbow")
+                set_mode(peripheral, 1, 50, 100)
+
+#                time.sleep(2)
+
+                print("setting RGB with GRB")
+                set_ic(peripheral, 0x01, 0x02)
+
                 time.sleep(5)
 
-                for m in range(5):
-                    m += 1
-                    print(f"Setting mode: {m}")
-                    set_mode(peripheral, m, 50, 100)
-                    time.sleep(5)
-                
-                p = build_smear_packet()
-                p = test_smear_pattern(p)
-                send_prepared_packet(peripheral, p)
-                time.sleep(10)
+                print("setting RGBW with RGBW and 0% white")
+                set_ic(peripheral, 0x07, 0x00)
+                set_white(peripheral, 0, 0)
 
-                print("Turning off")
-                set_power(peripheral, False)
-                time.sleep(2)
+                time.sleep(5)
+
+                print("setting white to 100%")
+                set_white(peripheral, 100, 100)
+
+                time.sleep(5)
+
+
             finally:
                 peripheral.disconnect()
 else:
